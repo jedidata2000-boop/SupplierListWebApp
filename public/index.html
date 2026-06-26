@@ -925,8 +925,9 @@ function uploadPhotoFile(file, supplierName, rowIndex, onDone) {
         supplierName: supplierName,
         rowIndex: rowIndex,
         imageBase64: base64,
-        mimeType: 'image/jpeg'
-      }, function() { onDone(); }, function() { toast('Photo upload failed', true); onDone(); });
+        mimeType: 'image/jpeg',
+        siteUrl: window.location.origin
+      }, function() { onDone(); }, function(err) { toast('Photo upload failed: ' + (err && err.message ? err.message : ''), true); onDone(); });
     };
     img.src = e.target.result;
   };
