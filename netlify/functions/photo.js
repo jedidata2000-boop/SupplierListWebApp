@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     const drive = google.drive({ version: 'v3', auth });
 
     const res = await drive.files.get(
-      { fileId: id, alt: 'media' },
+      { fileId: id, alt: 'media', supportsAllDrives: true },
       { responseType: 'stream' }
     );
 
