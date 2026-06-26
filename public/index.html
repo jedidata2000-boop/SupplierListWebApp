@@ -121,6 +121,24 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
 .bulk-photo-btn{cursor:pointer;font-size:18px;line-height:1;padding:2px 4px;display:inline-block}
 .bulk-photo-btn:hover{opacity:.7}
 .bulk-photo-preview{width:36px;height:36px;object-fit:cover;border-radius:3px;display:none;vertical-align:middle;margin-left:4px}
+.cat-margin-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0 14px;border-bottom:1px solid #EEEEEE;margin-bottom:14px}
+.cat-margin-bar label{font-size:12px;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.4px}
+.cat-margin-input{width:70px;padding:7px 8px;border:1.5px solid #E0E0E0;border-radius:4px;font-size:13px;font-family:inherit}
+.cat-margin-input:focus{outline:none;border-color:#00695C}
+.cat-phone-bar{margin-bottom:14px}
+.cat-price{font-weight:700;color:#2E7D32}
+.cat-send-btn{background:#25D366;color:#fff;border:none;border-radius:3px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;white-space:nowrap}
+.cat-send-btn:hover{opacity:.85}
+@media print{
+  body>*{display:none!important}
+  #printCat{display:block!important}
+  #printCat table{width:100%;border-collapse:collapse;font-size:12px}
+  #printCat th{background:#00695C;color:#fff;padding:8px 10px;text-align:left}
+  #printCat td{padding:8px 10px;border-bottom:1px solid #DDD;vertical-align:middle}
+  #printCat img{width:72px;height:72px;object-fit:cover}
+  #printCat h2{color:#00695C;margin-bottom:12px;font-size:18px}
+  #printCat .cat-meta{font-size:11px;color:#555;margin-bottom:8px}
+}
 </style>
 </head>
 <body>
@@ -149,6 +167,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
 
 <div id="overlay" class="hidden"><div class="spinner"></div></div>
 <div id="toast"></div>
+<div id="printCat" style="display:none;padding:20px"></div>
 
 <div id="dlg-overlay" class="hidden">
   <div class="dlg">
@@ -184,7 +203,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
         <thead>
           <tr>
             <th class="chk-col"><input type="checkbox" id="chkAll" title="Select all"></th>
-            <th>Photo</th><th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
+            <th>Photo</th><th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th><th>Units</th>
             <th>CBM</th><th>Cartons</th><th>Item Cost</th><th>Selling Price</th><th>Date</th><th></th>
           </tr>
         </thead>
@@ -232,9 +251,10 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
     <div class="form-row3">
       <div class="fg"><label>Price ¥ *</label><input id="foPrice" type="number" step="0.01" min="0"></div>
       <div class="fg"><label>Qty/Carton *</label><input id="foQty" type="number" min="1"></div>
-      <div class="fg"><label>CBM *</label><input id="foCbm" type="number" step="0.001" min="0"></div>
+      <div class="fg"><label>Units</label><input id="foUnits" type="text" placeholder="pcs, kg, set…"></div>
     </div>
-    <div class="form-row">
+    <div class="form-row3">
+      <div class="fg"><label>CBM *</label><input id="foCbm" type="number" step="0.001" min="0"></div>
       <div class="fg"><label>Ordered Cartons *</label><input id="foCartons" type="number" min="1"></div>
       <div class="fg"><label>Ordered Date *</label><input id="foDate" type="date"></div>
     </div>
@@ -261,6 +281,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
             <th>Item Name <span class="req">*</span></th>
             <th>Cartons Ord. <span class="req">*</span></th>
             <th>Qty/Carton <span class="req">*</span></th>
+            <th>Units</th>
             <th>Price ¥ <span class="req">*</span></th>
             <th>CBM <span class="req">*</span></th>
             <th>Date</th>
@@ -310,9 +331,37 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
   </div>
 </div>
 
+<div class="content hidden" id="vCatalogue">
+  <div class="card card-body">
+    <div class="cat-margin-bar">
+      <label>Bulk Margin:</label>
+      <input type="number" id="catBulkMargin" class="cat-margin-input" step="0.05" min="1" value="1.5">
+      <button class="btn btn-outline btn-sm" id="btnApplyMargin">APPLY TO ALL</button>
+    </div>
+    <div id="catWaBar" class="cat-phone-bar hidden">
+      <div class="fg" style="margin-bottom:0">
+        <label>WhatsApp Number (country code, no + sign)</label>
+        <input type="tel" id="catPhone" placeholder="628123456789" style="max-width:280px">
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr id="catThead"></tr></thead>
+        <tbody id="catBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="form-actions" style="padding:0 16px 24px">
+    <button class="btn btn-outline btn-sm" id="btnCancelCat">CANCEL</button>
+    <button class="btn btn-primary btn-sm" id="btnActionCat">GENERATE PDF</button>
+  </div>
+</div>
+
 <div id="bulkBar" class="bulk-bar hidden">
   <span id="bulkCount">0 selected</span>
   <button class="btn btn-white btn-sm" id="btnBulkEditOpen">EDIT</button>
+  <button class="btn btn-white btn-sm" id="btnCatalogue">CATALOGUE</button>
+  <button class="btn btn-white btn-sm" id="btnWhatsApp">WHATSAPP</button>
   <button class="btn btn-white-danger btn-sm" id="btnBulkDeleteAll">DELETE</button>
   <button class="btn btn-white btn-sm" id="btnBulkCancel">CANCEL</button>
 </div>
@@ -321,9 +370,9 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
 var S = {
   suppliers: [], orders: [], supplier: null,
   editOrder: null, editSup: null, rate: 0, allSkus: [], currentView: null,
-  selectedRows: [], _localPhoto: null
+  selectedRows: [], _localPhoto: null, catalogueMode: 'catalogue'
 };
-var VIEWS = ['vSuppliers','vDetail','vFormSup','vFormOrd','vBulk','vSearch','vBulkEdit'];
+var VIEWS = ['vSuppliers','vDetail','vFormSup','vFormOrd','vBulk','vSearch','vBulkEdit','vCatalogue'];
 var _dlgCb = null;
 var _tt = null;
 
@@ -373,6 +422,17 @@ document.addEventListener('click', function(e) {
     var tr = el.parentElement;
     while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
     if (tr) tr.parentElement.removeChild(tr);
+  } else if (action === 'catSend') {
+    var idx = parseInt(el.dataset.ci);
+    var ci = S._catItems && S._catItems[idx];
+    if (!ci) return;
+    var phone = (document.getElementById('catPhone').value || '').replace(/\D/g, '');
+    var o = ci.order;
+    var sell = calcSellPrice(o.itemCost, ci.margin);
+    var units = o.units || 'pcs';
+    var text = o.itemName + '\nHARGA: Rp ' + sell.toLocaleString('id-ID') + '/' + units +
+      '\n1 Dus isi ' + o.qtyPerCarton + ' ' + units;
+    window.open('https://wa.me/' + (phone || '') + '?text=' + encodeURIComponent(text), '_blank');
   }
 });
 
@@ -398,8 +458,13 @@ var App = {
     document.getElementById('btnBulkEditOpen').addEventListener('click', function() { App.bulkEditOpen(); });
     document.getElementById('btnBulkDeleteAll').addEventListener('click', function() { App.bulkDeleteAll(); });
     document.getElementById('btnBulkCancel').addEventListener('click', function() { clearSelection(); });
+    document.getElementById('btnCatalogue').addEventListener('click', function() { App.openCatalogue('catalogue'); });
+    document.getElementById('btnWhatsApp').addEventListener('click', function() { App.openCatalogue('whatsapp'); });
     document.getElementById('btnCancelBulkEdit').addEventListener('click', function() { App.openDetail(S.supplier); });
     document.getElementById('btnSaveBulkEdit').addEventListener('click', function() { App.saveBulkEdit(); });
+    document.getElementById('btnApplyMargin').addEventListener('click', function() { App.applyBulkMargin(); });
+    document.getElementById('btnCancelCat').addEventListener('click', function() { App.openDetail(S.supplier); });
+    document.getElementById('btnActionCat').addEventListener('click', function() { App.runCatalogueAction(); });
     document.addEventListener('change', function(e) {
       if (e.target && e.target.id === 'chkAll') {
         var checked = e.target.checked;
@@ -450,7 +515,7 @@ var App = {
     var v = S.currentView;
     if (v === 'vDetail')  { App.openSuppliers(); return; }
     if (v === 'vFormSup') { S.editSup ? App.openDetail(S.supplier) : App.openSuppliers(); return; }
-    if (v === 'vFormOrd' || v === 'vBulk' || v === 'vBulkEdit') { App.openDetail(S.supplier); return; }
+    if (v === 'vFormOrd' || v === 'vBulk' || v === 'vBulkEdit' || v === 'vCatalogue') { App.openDetail(S.supplier); return; }
     App.openSuppliers();
   },
 
@@ -492,7 +557,7 @@ var App = {
 
   addOrder: function() {
     S.editOrder = null;
-    var ids = ['foSku','foItem','foPrice','foQty','foCbm','foCartons'];
+    var ids = ['foSku','foItem','foPrice','foQty','foUnits','foCbm','foCartons'];
     for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
     document.getElementById('foDate').value = todayStr();
     document.getElementById('costBox').classList.add('hidden');
@@ -514,6 +579,7 @@ var App = {
     document.getElementById('foItem').value    = o.itemName;
     document.getElementById('foPrice').value   = o.price;
     document.getElementById('foQty').value     = o.qtyPerCarton;
+    document.getElementById('foUnits').value   = o.units || '';
     document.getElementById('foCbm').value     = o.cbm;
     document.getElementById('foCartons').value = o.orderedCartons;
     document.getElementById('foDate').value    = o.orderedDate;
@@ -616,6 +682,7 @@ var App = {
     var item    = document.getElementById('foItem').value.trim().toUpperCase();
     var price   = parseFloat(document.getElementById('foPrice').value)   || 0;
     var qty     = parseInt(document.getElementById('foQty').value)       || 0;
+    var units   = document.getElementById('foUnits').value.trim();
     var cbm     = parseFloat(document.getElementById('foCbm').value)     || 0;
     var cartons = parseInt(document.getElementById('foCartons').value)   || 0;
     var date    = document.getElementById('foDate').value.trim();
@@ -638,6 +705,7 @@ var App = {
       itemName:       item,
       price:          price,
       qtyPerCarton:   qty,
+      units:          units,
       cbm:            cbm,
       orderedCartons: cartons,
       orderedDate:    date,
@@ -691,15 +759,16 @@ var App = {
     var hasError = false;
 
     for (var r = 0; r < rows.length; r++) {
-      // inputs: [0]=photo file, [1]=sku, [2]=item, [3]=cartons, [4]=qty, [5]=price, [6]=cbm, [7]=date
+      // inputs: [0]=photo, [1]=sku, [2]=item, [3]=cartons, [4]=qty, [5]=units, [6]=price, [7]=cbm, [8]=date
       var inputs = rows[r].querySelectorAll('input');
       var sku     = inputs[1].value.trim().toUpperCase();
       var item    = inputs[2].value.trim().toUpperCase();
       var cartons = parseInt(inputs[3].value)   || 0;
       var qty     = parseInt(inputs[4].value)   || 0;
-      var price   = parseFloat(inputs[5].value) || 0;
-      var cbm     = parseFloat(inputs[6].value) || 0;
-      var date    = inputs[7].value || todayStr();
+      var units   = inputs[5].value.trim();
+      var price   = parseFloat(inputs[6].value) || 0;
+      var cbm     = parseFloat(inputs[7].value) || 0;
+      var date    = inputs[8].value || todayStr();
 
       if (!sku && !item && !cartons && !qty && !price && !cbm) continue;
 
@@ -708,8 +777,8 @@ var App = {
       if (!item)    { inputs[2].classList.add('err'); rowErr = true; } else inputs[2].classList.remove('err');
       if (!cartons) { inputs[3].classList.add('err'); rowErr = true; } else inputs[3].classList.remove('err');
       if (!qty)     { inputs[4].classList.add('err'); rowErr = true; } else inputs[4].classList.remove('err');
-      if (!price)   { inputs[5].classList.add('err'); rowErr = true; } else inputs[5].classList.remove('err');
-      if (!cbm)     { inputs[6].classList.add('err'); rowErr = true; } else inputs[6].classList.remove('err');
+      if (!price)   { inputs[6].classList.add('err'); rowErr = true; } else inputs[6].classList.remove('err');
+      if (!cbm)     { inputs[7].classList.add('err'); rowErr = true; } else inputs[7].classList.remove('err');
       if (rowErr) { hasError = true; continue; }
 
       var costs = computeCosts(price, qty, cbm, S.rate);
@@ -719,6 +788,7 @@ var App = {
         itemName:       item,
         price:          price,
         qtyPerCarton:   qty,
+        units:          units,
         cbm:            cbm,
         orderedCartons: cartons,
         orderedDate:    date,
@@ -826,7 +896,7 @@ var App = {
       return {
         rowIndex: o.rowIndex, supplierName: S.supplier.name,
         sku: o.sku, itemName: o.itemName,
-        price: price, qtyPerCarton: qty, cbm: cbm,
+        price: price, qtyPerCarton: qty, units: o.units || '', cbm: cbm,
         orderedCartons: cartons, orderedDate: date,
         itemCost: costs.cost, sellingPrice: costs.sell
       };
@@ -850,6 +920,120 @@ var App = {
     next();
   },
 
+  openCatalogue: function(mode) {
+    S.catalogueMode = mode;
+    var items = S.orders.filter(function(o) { return S.selectedRows.indexOf(o.rowIndex) !== -1; });
+    if (!items.length) { toast('Select at least one order first'); return; }
+    S._catItems = items.map(function(o) { return { order: o, margin: 1.5 }; });
+    var isWa = mode === 'whatsapp';
+    document.getElementById('catWaBar').classList[isWa ? 'remove' : 'add']('hidden');
+    document.getElementById('btnActionCat').textContent = isWa ? 'SEND TO WHATSAPP' : 'GENERATE PDF';
+    App.renderCatalogueItems();
+    clearSelection();
+    setView('vCatalogue', isWa ? 'Publish to WhatsApp' : 'Create Catalogue', true);
+  },
+
+  renderCatalogueItems: function() {
+    var isWa = S.catalogueMode === 'whatsapp';
+    var thead = document.getElementById('catThead');
+    thead.innerHTML = '<th style="width:72px">Photo</th><th>Item Name</th><th>Units</th>' +
+      '<th>Qty/Ctn</th><th>Cartons</th><th>Item Cost</th><th style="width:90px">Margin</th>' +
+      '<th>Sell Price</th>' + (isWa ? '<th></th>' : '');
+    var body = document.getElementById('catBody');
+    var rows = '';
+    for (var i = 0; i < S._catItems.length; i++) {
+      var ci = S._catItems[i];
+      var o = ci.order;
+      var sell = calcSellPrice(o.itemCost, ci.margin);
+      var photoHtml = o.photo ? '<img src="' + esc(o.photo) + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px">' : '<span style="color:#BDBDBD">—</span>';
+      rows +=
+        '<tr data-ci="' + i + '">' +
+        '<td style="text-align:center">' + photoHtml + '</td>' +
+        '<td><strong>' + esc(o.itemName) + '</strong></td>' +
+        '<td>' + esc(o.units || '') + '</td>' +
+        '<td>' + o.qtyPerCarton + '</td>' +
+        '<td>' + o.orderedCartons + '</td>' +
+        '<td class="rp">' + fmtRp(o.itemCost) + '</td>' +
+        '<td><input type="number" class="cat-margin-input" data-ci="' + i + '" value="' + ci.margin + '" step="0.05" min="1" style="width:70px"></td>' +
+        '<td class="rp cat-price-' + i + '">' + fmtRp(sell) + '</td>' +
+        (isWa ? '<td><button class="cat-send-btn" data-ci="' + i + '" data-action="catSend">SEND</button></td>' : '') +
+        '</tr>';
+    }
+    body.innerHTML = rows;
+    body.querySelectorAll('.cat-margin-input').forEach(function(inp) {
+      inp.addEventListener('input', function() {
+        var idx = parseInt(this.dataset.ci);
+        var m = parseFloat(this.value) || 1;
+        S._catItems[idx].margin = m;
+        var cell = body.querySelector('.cat-price-' + idx);
+        if (cell) cell.textContent = fmtRp(calcSellPrice(S._catItems[idx].order.itemCost, m));
+      });
+    });
+  },
+
+  applyBulkMargin: function() {
+    var m = parseFloat(document.getElementById('catBulkMargin').value) || 1.5;
+    for (var i = 0; i < S._catItems.length; i++) S._catItems[i].margin = m;
+    App.renderCatalogueItems();
+    document.getElementById('catBulkMargin').value = m;
+  },
+
+  runCatalogueAction: function() {
+    if (S.catalogueMode === 'whatsapp') {
+      App.sendAllWhatsApp();
+    } else {
+      App.generatePDF();
+    }
+  },
+
+  generatePDF: function() {
+    var win = window.open('', '_blank');
+    if (!win) { toast('Allow popups in your browser to generate PDF', true); return; }
+    var supName = S.supplier ? esc(S.supplier.name) : 'Catalogue';
+    var rows = '';
+    for (var i = 0; i < S._catItems.length; i++) {
+      var ci = S._catItems[i];
+      var o = ci.order;
+      var sell = calcSellPrice(o.itemCost, ci.margin);
+      var desc = esc(o.itemName) + (o.units ? ' (' + esc(o.units) + ')' : '');
+      rows +=
+        '<tr>' +
+        '<td style="text-align:center;width:90px">' + (o.photo ? '<img src="' + esc(o.photo) + '" style="width:80px;height:80px;object-fit:cover">' : '—') + '</td>' +
+        '<td>' + desc + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">Rp ' + sell.toLocaleString('id-ID') + '</td>' +
+        '<td style="text-align:center">' + o.qtyPerCarton + ' ' + esc(o.units || '') + '</td>' +
+        '<td style="text-align:center">' + o.orderedCartons + '</td>' +
+        '</tr>';
+    }
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + supName + ' — Catalogue</title>' +
+      '<style>body{font-family:sans-serif;margin:24px;color:#212121}' +
+      'h2{color:#00695C;margin-bottom:4px;font-size:20px}.sub{font-size:13px;color:#757575;margin-bottom:16px}' +
+      'table{width:100%;border-collapse:collapse}th{background:#00695C;color:#fff;padding:9px 11px;text-align:left;font-size:12px}' +
+      'td{padding:9px 11px;border-bottom:1px solid #EEE;vertical-align:middle;font-size:13px}' +
+      'tr:last-child td{border-bottom:none}img{display:block}</style>' +
+      '</head><body>' +
+      '<h2>' + supName + '</h2>' +
+      '<div class="sub">' + new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'}) + '</div>' +
+      '<table><thead><tr><th>Photo</th><th>Item Description</th><th>Price</th><th>Qty/Carton</th><th>Cartons</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></body></html>');
+    win.document.close();
+    setTimeout(function() { win.focus(); win.print(); }, 600);
+  },
+
+  sendAllWhatsApp: function() {
+    var phone = (document.getElementById('catPhone').value || '').replace(/\D/g, '');
+    for (var i = 0; i < S._catItems.length; i++) {
+      var ci = S._catItems[i];
+      var o = ci.order;
+      var sell = calcSellPrice(o.itemCost, ci.margin);
+      var units = o.units || 'pcs';
+      var text = o.itemName + '\nHARGA: Rp ' + sell.toLocaleString('id-ID') + '/' + units +
+        '\n1 Dus isi ' + o.qtyPerCarton + ' ' + units;
+      var url = 'https://wa.me/' + (phone || '') + '?text=' + encodeURIComponent(text);
+      window.open(url, '_blank');
+    }
+  },
+
   doSearch: function() {
     var sku = document.getElementById('srchInput').value.trim().toUpperCase();
     if (!sku) { toast('Enter a SKU'); return; }
@@ -860,6 +1044,11 @@ var App = {
     });
   }
 };
+
+function calcSellPrice(itemCost, margin) {
+  if (!itemCost || !margin) return 0;
+  return Math.ceil((itemCost * margin) / 500) * 500;
+}
 
 // ── Render functions ──────────────────────────────────────────────
 
@@ -924,6 +1113,7 @@ function renderOrders(list) {
         '<td>' + esc(o.itemName) + '</td>' +
         '<td>¥' + o.price + '</td>' +
         '<td>' + o.qtyPerCarton + '</td>' +
+        '<td>' + esc(o.units) + '</td>' +
         '<td>' + o.cbm + '</td>' +
         '<td>' + o.orderedCartons + '</td>' +
         '<td class="rp">' + fmtRp(o.itemCost) + '</td>' +
@@ -999,6 +1189,7 @@ function addBulkRow() {
     '<td><input type="text"   style="text-transform:uppercase;min-width:140px" placeholder="Item name"></td>' +
     '<td><input type="number" style="min-width:70px"  min="1"      placeholder="10"></td>' +
     '<td><input type="number" style="min-width:70px"  min="1"      placeholder="50"></td>' +
+    '<td><input type="text"   style="min-width:60px"  placeholder="pcs"></td>' +
     '<td><input type="number" style="min-width:70px"  step="0.01"  min="0" placeholder="45.00"></td>' +
     '<td><input type="number" style="min-width:70px"  step="0.001" min="0" placeholder="0.050"></td>' +
     '<td><input type="date"   style="min-width:130px" value="' + today + '"></td>' +
