@@ -173,7 +173,7 @@ tr:hover td{background:#FAFAFA}
       <table>
         <thead>
           <tr>
-            <th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
+            <th>Photo</th><th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
             <th>CBM</th><th>Cartons</th><th>Date</th><th>Item Cost</th><th>Selling Price</th><th></th>
           </tr>
         </thead>
@@ -203,6 +203,17 @@ tr:hover td{background:#FAFAFA}
 
 <div class="content hidden" id="vFormOrd">
   <div class="card card-body">
+    <div class="fg">
+      <label>Photo</label>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <img id="foPhotoCurrent" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #E0E0E0">
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;margin:0">
+          CHOOSE PHOTO
+          <input type="file" id="foPhoto" accept="image/*" style="display:none">
+        </label>
+        <span id="foPhotoName" style="font-size:12px;color:#757575"></span>
+      </div>
+    </div>
     <div class="form-row">
       <div class="fg"><label>SKU *</label><input id="foSku" type="text" style="text-transform:uppercase"></div>
       <div class="fg"><label>Item Name *</label><input id="foItem" type="text" style="text-transform:uppercase"></div>
@@ -350,6 +361,18 @@ var App = {
     document.getElementById('foPrice').addEventListener('input', updateCostPreview);
     document.getElementById('foQty').addEventListener('input', updateCostPreview);
     document.getElementById('foCbm').addEventListener('input', updateCostPreview);
+    document.getElementById('foPhoto').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('foPhotoName').textContent = file.name;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = document.getElementById('foPhotoCurrent');
+        img.src = ev.target.result;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
 
     var ssid = localStorage.getItem('ssid');
     if (ssid) {
@@ -411,6 +434,10 @@ var App = {
     for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
     document.getElementById('foDate').value = todayStr();
     document.getElementById('costBox').classList.add('hidden');
+    document.getElementById('foPhoto').value = '';
+    document.getElementById('foPhotoName').textContent = '';
+    document.getElementById('foPhotoCurrent').style.display = 'none';
+    document.getElementById('foPhotoCurrent').src = '';
     setView('vFormOrd', 'Add Order', true);
   },
 
@@ -428,6 +455,11 @@ var App = {
     document.getElementById('foCbm').value     = o.cbm;
     document.getElementById('foCartons').value = o.orderedCartons;
     document.getElementById('foDate').value    = o.orderedDate;
+    document.getElementById('foPhoto').value   = '';
+    document.getElementById('foPhotoName').textContent = '';
+    var photoImg = document.getElementById('foPhotoCurrent');
+    if (o.photo) { photoImg.src = o.photo; photoImg.style.display = 'block'; }
+    else { photoImg.src = ''; photoImg.style.display = 'none'; }
     updateCostPreview();
     setView('vFormOrd', 'Edit Order', true);
   },
@@ -546,11 +578,23 @@ var App = {
     loading(true);
     var fn = S.editOrder ? 'updateOrder' : 'addOrder';
     var wasEdit = S.editOrder;
-    gsr(fn, data, function() {
-      loading(false);
-      toast(wasEdit ? 'Order updated' : 'Order added');
-      fetchAllSkus();
-      App.openDetail(S.supplier);
+    var knownRowIndex = S.editOrder ? S.editOrder.rowIndex : -1;
+    gsr(fn, data, function(result) {
+      var rowIndex = wasEdit ? knownRowIndex : (result && result.rowIndex ? result.rowIndex : -1);
+      var photoFile = document.getElementById('foPhoto').files[0];
+      if (photoFile && rowIndex > 0) {
+        uploadPhotoFile(photoFile, S.supplier.name, rowIndex, function() {
+          loading(false);
+          toast(wasEdit ? 'Order updated' : 'Order added');
+          fetchAllSkus();
+          App.openDetail(S.supplier);
+        });
+      } else {
+        loading(false);
+        toast(wasEdit ? 'Order updated' : 'Order added');
+        fetchAllSkus();
+        App.openDetail(S.supplier);
+      }
     });
   },
 
@@ -699,6 +743,7 @@ function renderOrders(list) {
     var o = list[i];
     html +=
       '<tr>' +
+        '<td>' + (o.photo ? '<img src="' + esc(o.photo) + '" style="width:64px;height:64px;object-fit:cover;border-radius:4px;display:block">' : '<span style="color:#BDBDBD;font-size:11px">—</span>') + '</td>' +
         '<td><strong>' + esc(o.sku) + '</strong></td>' +
         '<td>' + esc(o.itemName) + '</td>' +
         '<td>¥' + o.price + '</td>' +
@@ -737,7 +782,11 @@ function orderCardHtml(o) {
   if (o.supplierPhone)  contact.push('📞 ' + esc(o.supplierPhone));
   if (o.supplierEmail)  contact.push('✉ '  + esc(o.supplierEmail));
   if (o.supplierWechat) contact.push('💬 ' + esc(o.supplierWechat));
+  var photoHtml = o.photo ? '<img src="' + esc(o.photo) + '" style="width:72px;height:72px;object-fit:cover;border-radius:6px;flex-shrink:0">' : '';
   return '<div class="order-card">' +
+    '<div style="display:flex;gap:12px;align-items:flex-start">' +
+    (photoHtml ? photoHtml : '') +
+    '<div style="flex:1;min-width:0">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
       '<div class="order-sku">' + esc(o.sku) + '</div>' +
       '<div style="font-size:12px;color:#757575">' + esc(o.supplierName) + '</div>' +
@@ -752,7 +801,7 @@ function orderCardHtml(o) {
     '</div>' +
     '<div class="order-cost">Cost: ' + fmtRp(o.itemCost) + ' · Sell: ' + fmtRp(o.sellingPrice) + '</div>' +
     (contact.length ? '<div class="order-contact">' + contact.join('  ·  ') + '</div>' : '') +
-    '</div>';
+    '</div></div></div>';
 }
 
 // ── Bulk table ────────────────────────────────────────────────────
@@ -856,6 +905,32 @@ function todayStr() {
   var m = d.getMonth() + 1;
   var day = d.getDate();
   return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+
+// ── Photo upload ──────────────────────────────────────────────────
+
+function uploadPhotoFile(file, supplierName, rowIndex, onDone) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var MAX = 600;
+      var scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      var canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      var base64 = canvas.toDataURL('image/jpeg', 0.78).split(',')[1];
+      gsr('uploadPhoto', {
+        supplierName: supplierName,
+        rowIndex: rowIndex,
+        imageBase64: base64,
+        mimeType: 'image/jpeg'
+      }, function() { onDone(); }, function() { toast('Photo upload failed', true); onDone(); });
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── Backend RPC wrapper (Netlify function) ─────────────────────────
