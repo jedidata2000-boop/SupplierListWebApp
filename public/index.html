@@ -185,7 +185,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
           <tr>
             <th class="chk-col"><input type="checkbox" id="chkAll" title="Select all"></th>
             <th>Photo</th><th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
-            <th>CBM</th><th>Cartons</th><th>Date</th><th>Item Cost</th><th>Selling Price</th><th></th>
+            <th>CBM</th><th>Cartons</th><th>Item Cost</th><th>Selling Price</th><th>Date</th><th></th>
           </tr>
         </thead>
         <tbody id="ordBody"></tbody>
@@ -926,9 +926,9 @@ function renderOrders(list) {
         '<td>' + o.qtyPerCarton + '</td>' +
         '<td>' + o.cbm + '</td>' +
         '<td>' + o.orderedCartons + '</td>' +
-        '<td>' + esc(o.orderedDate) + '</td>' +
         '<td class="rp">' + fmtRp(o.itemCost) + '</td>' +
         '<td class="rp">' + fmtRp(o.sellingPrice) + '</td>' +
+        '<td>' + esc(o.orderedDate) + '</td>' +
         '<td><div class="td-act">' +
           '<button class="btn btn-outline btn-sm" data-action="editOrder" data-row="' + o.rowIndex + '">EDIT</button>' +
           '<button class="btn btn-danger btn-sm" data-action="delOrder" data-row="' + o.rowIndex + '">DEL</button>' +
