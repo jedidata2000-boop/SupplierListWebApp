@@ -1,0 +1,12 @@
+{
+  "name": "supplier-list-web-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Supplier List web app — Netlify Functions + Google Sheets backend",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}

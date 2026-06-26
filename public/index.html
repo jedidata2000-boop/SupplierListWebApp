@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supplier List</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#F5F5F5;color:#212121;min-height:100vh}
+header{background:#00695C;color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+header h1{font-size:18px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtn{background:none;border:none;color:#fff;cursor:pointer;padding:8px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px}
+.hbtn:hover{background:rgba(255,255,255,.15)}
+.content{max-width:960px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.12);margin-bottom:16px;overflow:hidden}
+.card-body{padding:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:#00695C;color:#fff}
+.btn-outline{background:transparent;border:1.5px solid #00695C;color:#00695C}
+.btn-danger{background:transparent;border:1.5px solid #c62828;color:#c62828}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-ghost{background:transparent;border:none;color:#00695C;font-size:12px;font-weight:600;cursor:pointer;padding:4px 8px;border-radius:4px}
+.btn-ghost:hover{background:#E8F5E9}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.toolbar h2{font-size:15px;font-weight:700;color:#00695C;letter-spacing:.3px}
+.toolbar-right{display:flex;gap:8px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:#757575;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fg input,.fg textarea{width:100%;padding:9px 11px;border:1.5px solid #E0E0E0;border-radius:4px;font-size:14px;font-family:inherit;background:#fff;color:#212121}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:#00695C}
+.fg input.err{border-color:#c62828}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
+.sup-item{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #F0F0F0;gap:12px;cursor:pointer}
+.sup-item:last-child{border-bottom:none}
+.sup-item:hover{background:#FAFAFA}
+.sup-avatar{width:40px;height:40px;border-radius:50%;background:#00695C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;flex-shrink:0}
+.sup-info{flex:1;min-width:0}
+.sup-name{font-weight:600;font-size:15px}
+.sup-sub{font-size:12px;color:#757575;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sup-actions{display:flex;gap:5px;flex-shrink:0}
+.det-header{padding:16px}
+.det-name{font-size:20px;font-weight:700;margin-bottom:8px}
+.det-divider{height:1px;background:#EEEEEE;margin:8px 0}
+.det-row{display:flex;align-items:flex-start;gap:8px;padding:3px 0;font-size:14px;color:#424242}
+.det-row .ic{width:20px;text-align:center;flex-shrink:0}
+.det-row a{color:#1565C0;text-decoration:none}
+.wechat-link{cursor:pointer;color:#1565C0;font-weight:500}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#00695C;color:#fff;padding:9px 11px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.3px;white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid #F0F0F0;vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAFA}
+.td-act{display:flex;gap:4px}
+.cost-box{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:4px;padding:11px 14px;margin-bottom:14px;font-size:13px}
+.cost-row{display:flex;justify-content:space-between;margin-bottom:3px}
+.cost-row:last-child{margin-bottom:0}
+.cost-val{font-weight:700;color:#2E7D32}
+.bulk-table-wrap{overflow-x:auto;margin-bottom:14px}
+.bulk-table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+.bulk-table th{background:#00695C;color:#fff;padding:8px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;text-align:left;white-space:nowrap}
+.bulk-table th .req{color:#FFCC80}
+.bulk-table td{padding:3px 4px;border-bottom:1px solid #F0F0F0}
+.bulk-table td:first-child{padding-left:10px}
+.bulk-table td:last-child{padding-right:10px;width:36px}
+.bulk-table input{width:100%;padding:7px 8px;border:1.5px solid #E0E0E0;border-radius:3px;font-size:13px;font-family:inherit;background:#fff}
+.bulk-table input:focus{outline:none;border-color:#00695C;background:#F1F8E9}
+.bulk-table input.err{border-color:#c62828;background:#FFEBEE}
+.bulk-row-del{background:none;border:none;color:#BDBDBD;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:3px}
+.bulk-row-del:hover{color:#c62828}
+.bulk-add-row{margin-bottom:14px}
+.bulk-rate{font-size:12px;color:#757575;margin-bottom:14px}
+.search-box{display:flex;gap:8px;margin-bottom:12px}
+.search-box input{flex:1;padding:10px 12px;border:1.5px solid #E0E0E0;border-radius:4px;font-size:15px;font-family:inherit}
+.search-box input:focus{outline:none;border-color:#00695C}
+.result-badge{display:inline-block;background:#00695C;color:#fff;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px}
+.result-prev{background:#757575}
+.order-card{padding:13px 16px;border-bottom:1px solid #F0F0F0}
+.order-card:last-child{border-bottom:none}
+.order-sku{font-size:15px;font-weight:700;color:#00695C}
+.order-meta{font-size:13px;color:#424242;margin-top:3px;display:flex;flex-wrap:wrap;gap:10px}
+.order-cost{font-size:13px;color:#2E7D32;font-weight:600;margin-top:3px}
+.order-contact{font-size:12px;color:#757575;margin-top:3px}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;z-index:999}
+.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#323232;color:#fff;padding:11px 20px;border-radius:4px;font-size:14px;z-index:1001;transition:transform .28s ease;max-width:92%;text-align:center;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.err{background:#b71c1c}
+#dlg-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:1000}
+.dlg{background:#fff;border-radius:8px;padding:22px 24px;max-width:360px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.dlg h3{font-size:16px;font-weight:600;margin-bottom:7px}
+.dlg p{font-size:14px;color:#555;margin-bottom:18px;line-height:1.5}
+.dlg-act{display:flex;gap:8px;justify-content:flex-end}
+.setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-card{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.12);padding:32px;max-width:460px;width:100%}
+.setup-logo{width:48px;height:48px;background:#00695C;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+.setup-card h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.setup-card p{font-size:14px;color:#757575;margin-bottom:20px;line-height:1.5}
+.setup-input{width:100%;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:6px;font-size:14px;font-family:inherit;margin-bottom:12px}
+.setup-input:focus{outline:none;border-color:#00695C}
+.setup-input.err{border-color:#c62828}
+.setup-err{font-size:13px;color:#c62828;margin-bottom:12px;display:none}
+.setup-hint{font-size:12px;color:#9E9E9E;margin-top:12px;line-height:1.6}
+.setup-hint code{background:#F5F5F5;padding:1px 5px;border-radius:3px;font-size:11px}
+.hidden{display:none!important}
+.empty{text-align:center;padding:40px 16px;color:#9E9E9E;font-size:14px}
+.empty .ei{font-size:38px;margin-bottom:8px}
+.rp{font-weight:600;color:#2E7D32}
+</style>
+</head>
+<body>
+
+<div id="vSetup" class="setup-wrap hidden">
+  <div class="setup-card">
+    <div class="setup-logo">📋</div>
+    <h2>Connect Your Spreadsheet</h2>
+    <p>Paste the URL or ID of your Supplier List Google Sheet to get started.</p>
+    <input id="setupInput" class="setup-input" type="text" placeholder="https://docs.google.com/spreadsheets/d/…">
+    <div id="setupErr" class="setup-err"></div>
+    <button class="btn btn-primary" id="btnSaveSetup" style="width:100%">CONNECT</button>
+    <p class="setup-hint">
+      Find the URL in your browser when the sheet is open.<br>
+      Make sure the sheet is shared (Editor access) with the service account email configured on the server.
+    </p>
+  </div>
+</div>
+
+<header id="appHeader" class="hidden">
+  <button class="hbtn hidden" id="btnBack">&#8592;</button>
+  <h1 id="hTitle">Supplier List</h1>
+  <button class="hbtn" id="btnSearchBtn" title="Search SKU">&#128269;</button>
+  <button class="hbtn" id="btnSettings" title="Change spreadsheet">&#9881;</button>
+</header>
+
+<div id="overlay" class="hidden"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<div id="dlg-overlay" class="hidden">
+  <div class="dlg">
+    <h3 id="dlgTitle"></h3>
+    <p id="dlgMsg"></p>
+    <div class="dlg-act">
+      <button class="btn btn-outline btn-sm" id="dlgCancel">CANCEL</button>
+      <button class="btn btn-danger btn-sm" id="dlgOk">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="vSuppliers">
+  <div class="toolbar">
+    <h2>Suppliers</h2>
+    <button class="btn btn-primary btn-sm" id="btnAddSupplier">+ ADD SUPPLIER</button>
+  </div>
+  <div class="card"><div id="supList"></div></div>
+</div>
+
+<div class="content hidden" id="vDetail">
+  <div class="card" id="supCard"></div>
+  <div class="toolbar">
+    <h2>Orders</h2>
+    <div class="toolbar-right">
+      <button class="btn btn-outline btn-sm" id="btnBulkAdd">BULK ADD</button>
+      <button class="btn btn-primary btn-sm" id="btnAddOrder">+ ADD ORDER</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
+            <th>CBM</th><th>Cartons</th><th>Date</th><th>Item Cost</th><th>Selling Price</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="ordBody"></tbody>
+      </table>
+      <div id="ordEmpty" class="empty hidden"><div class="ei">📦</div>No orders yet.</div>
+    </div>
+  </div>
+</div>
+
+<div class="content hidden" id="vFormSup">
+  <div class="card card-body">
+    <div class="fg"><label>Name *</label><input id="fsName" type="text" autocomplete="off"></div>
+    <div class="fg"><label>Address</label><input id="fsAddr" type="text"></div>
+    <div class="form-row">
+      <div class="fg"><label>Phone</label><input id="fsPhone" type="tel"></div>
+      <div class="fg"><label>Email</label><input id="fsEmail" type="email"></div>
+    </div>
+    <div class="fg"><label>WeChat ID</label><input id="fsWechat" type="text"></div>
+    <div class="fg"><label>Notes</label><textarea id="fsNotes" rows="3"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-outline btn-sm" id="btnCancelSup">CANCEL</button>
+      <button class="btn btn-primary btn-sm" id="btnSaveSup">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div class="content hidden" id="vFormOrd">
+  <div class="card card-body">
+    <div class="form-row">
+      <div class="fg"><label>SKU *</label><input id="foSku" type="text" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Item Name *</label><input id="foItem" type="text" style="text-transform:uppercase"></div>
+    </div>
+    <div class="form-row3">
+      <div class="fg"><label>Price ¥ *</label><input id="foPrice" type="number" step="0.01" min="0"></div>
+      <div class="fg"><label>Qty/Carton *</label><input id="foQty" type="number" min="1"></div>
+      <div class="fg"><label>CBM *</label><input id="foCbm" type="number" step="0.001" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Ordered Cartons *</label><input id="foCartons" type="number" min="1"></div>
+      <div class="fg"><label>Ordered Date *</label><input id="foDate" type="date"></div>
+    </div>
+    <div id="costBox" class="cost-box hidden">
+      <div class="cost-row"><span>Item Cost</span><span class="cost-val" id="cpCost">—</span></div>
+      <div class="cost-row"><span>Selling Price</span><span class="cost-val" id="cpSell">—</span></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline btn-sm" id="btnCancelOrd">CANCEL</button>
+      <button class="btn btn-primary btn-sm" id="btnSaveOrd">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<div class="content hidden" id="vBulk">
+  <div class="card card-body">
+    <p id="bulkRate" class="bulk-rate">Loading exchange rate…</p>
+    <div class="bulk-table-wrap">
+      <table class="bulk-table">
+        <thead>
+          <tr>
+            <th>SKU <span class="req">*</span></th>
+            <th>Item Name <span class="req">*</span></th>
+            <th>Cartons Ord. <span class="req">*</span></th>
+            <th>Qty/Carton <span class="req">*</span></th>
+            <th>Price ¥ <span class="req">*</span></th>
+            <th>CBM <span class="req">*</span></th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bulkBody"></tbody>
+      </table>
+    </div>
+    <div class="bulk-add-row">
+      <button class="btn-ghost" id="btnBulkAddRow">+ ADD ROW</button>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline btn-sm" id="btnCancelBulk">CANCEL</button>
+      <button class="btn btn-primary btn-sm" id="btnSaveBulk">SAVE ALL</button>
+    </div>
+  </div>
+</div>
+
+<div class="content hidden" id="vSearch">
+  <div class="card card-body" style="margin-bottom:14px">
+    <div class="search-box">
+      <input id="srchInput" type="text" placeholder="Enter SKU…" style="text-transform:uppercase">
+      <button class="btn btn-primary" id="btnDoSearch">SEARCH</button>
+    </div>
+    <div id="srchHint" style="font-size:12px;color:#9E9E9E"></div>
+  </div>
+  <div id="srchResults"></div>
+</div>
+
+<script>
+var S = {
+  suppliers: [], orders: [], supplier: null,
+  editOrder: null, editSup: null, rate: 0, allSkus: [], currentView: null
+};
+var VIEWS = ['vSuppliers','vDetail','vFormSup','vFormOrd','vBulk','vSearch'];
+var _dlgCb = null;
+var _tt = null;
+
+function setView(id, title, showBack) {
+  for (var i = 0; i < VIEWS.length; i++) {
+    var el = document.getElementById(VIEWS[i]);
+    if (VIEWS[i] === id) { el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
+  }
+  document.getElementById('hTitle').textContent = title;
+  var backBtn = document.getElementById('btnBack');
+  if (showBack) { backBtn.classList.remove('hidden'); } else { backBtn.classList.add('hidden'); }
+  var srchBtn = document.getElementById('btnSearchBtn');
+  if (id === 'vSearch') { srchBtn.classList.add('hidden'); } else { srchBtn.classList.remove('hidden'); }
+  S.currentView = id;
+}
+
+// Event delegation for dynamically generated buttons
+document.addEventListener('click', function(e) {
+  var el = e.target;
+  // Walk up to find data-action element
+  while (el && el !== document.body) {
+    if (el.dataset && el.dataset.action) break;
+    el = el.parentElement;
+  }
+  if (!el || !el.dataset || !el.dataset.action) return;
+
+  var action = el.dataset.action;
+  var row = parseInt(el.dataset.row) || 0;
+
+  if (action === 'openDetail') {
+    var sup = null;
+    for (var i = 0; i < S.suppliers.length; i++) {
+      if (S.suppliers[i].rowIndex === row) { sup = S.suppliers[i]; break; }
+    }
+    if (sup) App.openDetail(sup);
+  } else if (action === 'editSupplier') {
+    App.editSupplier(row);
+  } else if (action === 'delSupplier') {
+    App.delSupplier(row);
+  } else if (action === 'editOrder') {
+    App.editOrder(row);
+  } else if (action === 'delOrder') {
+    App.delOrder(row);
+  } else if (action === 'copyWechat') {
+    App.copyWechat(el.dataset.wechat || '');
+  } else if (action === 'delBulkRow') {
+    var tr = el.parentElement;
+    while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
+    if (tr) tr.parentElement.removeChild(tr);
+  }
+});
+
+var App = {
+  init: function() {
+    document.getElementById('btnBack').addEventListener('click', function() { App.back(); });
+    document.getElementById('btnSearchBtn').addEventListener('click', function() { App.openSearch(); });
+    document.getElementById('btnSettings').addEventListener('click', function() { showSetup(true); });
+    document.getElementById('dlgCancel').addEventListener('click', function() { hideDialog(); });
+    document.getElementById('dlgOk').addEventListener('click', function() { hideDialog(); if (_dlgCb) _dlgCb(); });
+    document.getElementById('btnAddSupplier').addEventListener('click', function() { App.addSupplier(); });
+    document.getElementById('btnBulkAdd').addEventListener('click', function() { App.bulkAdd(); });
+    document.getElementById('btnAddOrder').addEventListener('click', function() { App.addOrder(); });
+    document.getElementById('btnCancelSup').addEventListener('click', function() { App.back(); });
+    document.getElementById('btnSaveSup').addEventListener('click', function() { App.saveSup(); });
+    document.getElementById('btnCancelOrd').addEventListener('click', function() { App.back(); });
+    document.getElementById('btnSaveOrd').addEventListener('click', function() { App.saveOrd(); });
+    document.getElementById('btnBulkAddRow').addEventListener('click', function() { addBulkRow(); });
+    document.getElementById('btnCancelBulk').addEventListener('click', function() { App.back(); });
+    document.getElementById('btnSaveBulk').addEventListener('click', function() { App.saveBulk(); });
+    document.getElementById('btnDoSearch').addEventListener('click', function() { App.doSearch(); });
+    document.getElementById('btnSaveSetup').addEventListener('click', function() { saveSetup(); });
+    document.getElementById('srchInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') App.doSearch(); });
+    document.getElementById('setupInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveSetup(); });
+    document.getElementById('foPrice').addEventListener('input', updateCostPreview);
+    document.getElementById('foQty').addEventListener('input', updateCostPreview);
+    document.getElementById('foCbm').addEventListener('input', updateCostPreview);
+
+    var ssid = localStorage.getItem('ssid');
+    if (ssid) {
+      showApp();
+      App.loadSuppliers();
+      fetchRate();
+      fetchAllSkus();
+    } else {
+      showSetup(false);
+    }
+  },
+
+  back: function() {
+    var v = S.currentView;
+    if (v === 'vDetail')  { App.openSuppliers(); return; }
+    if (v === 'vFormSup') { S.editSup ? App.openDetail(S.supplier) : App.openSuppliers(); return; }
+    if (v === 'vFormOrd' || v === 'vBulk') { App.openDetail(S.supplier); return; }
+    App.openSuppliers();
+  },
+
+  openSuppliers: function() {
+    setView('vSuppliers', 'Supplier List', false);
+    App.loadSuppliers();
+  },
+
+  openDetail: function(sup) {
+    S.supplier = sup;
+    setView('vDetail', sup.name, true);
+    renderSupCard(sup);
+    App.loadOrders(sup.name);
+  },
+
+  addSupplier: function() {
+    S.editSup = null;
+    var ids = ['fsName','fsAddr','fsPhone','fsEmail','fsWechat','fsNotes'];
+    for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+    setView('vFormSup', 'Add Supplier', true);
+  },
+
+  editSupplier: function(rowIndex) {
+    var sup = null;
+    for (var i = 0; i < S.suppliers.length; i++) {
+      if (S.suppliers[i].rowIndex === rowIndex) { sup = S.suppliers[i]; break; }
+    }
+    if (!sup) return;
+    S.editSup = sup;
+    document.getElementById('fsName').value   = sup.name;
+    document.getElementById('fsAddr').value   = sup.address;
+    document.getElementById('fsPhone').value  = sup.phone;
+    document.getElementById('fsEmail').value  = sup.email;
+    document.getElementById('fsWechat').value = sup.wechat;
+    document.getElementById('fsNotes').value  = sup.notes;
+    setView('vFormSup', 'Edit Supplier', true);
+  },
+
+  addOrder: function() {
+    S.editOrder = null;
+    var ids = ['foSku','foItem','foPrice','foQty','foCbm','foCartons'];
+    for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
+    document.getElementById('foDate').value = todayStr();
+    document.getElementById('costBox').classList.add('hidden');
+    setView('vFormOrd', 'Add Order', true);
+  },
+
+  editOrder: function(rowIndex) {
+    var o = null;
+    for (var i = 0; i < S.orders.length; i++) {
+      if (S.orders[i].rowIndex === rowIndex) { o = S.orders[i]; break; }
+    }
+    if (!o) return;
+    S.editOrder = o;
+    document.getElementById('foSku').value     = o.sku;
+    document.getElementById('foItem').value    = o.itemName;
+    document.getElementById('foPrice').value   = o.price;
+    document.getElementById('foQty').value     = o.qtyPerCarton;
+    document.getElementById('foCbm').value     = o.cbm;
+    document.getElementById('foCartons').value = o.orderedCartons;
+    document.getElementById('foDate').value    = o.orderedDate;
+    updateCostPreview();
+    setView('vFormOrd', 'Edit Order', true);
+  },
+
+  bulkAdd: function() {
+    buildBulkRows(5);
+    setView('vBulk', 'Bulk Add — ' + S.supplier.name, true);
+    updateBulkRate();
+  },
+
+  openSearch: function() {
+    document.getElementById('srchInput').value = '';
+    document.getElementById('srchResults').innerHTML = '';
+    document.getElementById('srchHint').textContent =
+      S.allSkus.length ? S.allSkus.length + ' SKUs in database' : '';
+    setView('vSearch', 'SKU Search', true);
+    setTimeout(function() { document.getElementById('srchInput').focus(); }, 80);
+  },
+
+  loadSuppliers: function() {
+    loading(true);
+    gsr('getSuppliers', null, function(data) {
+      loading(false);
+      S.suppliers = data;
+      renderSuppliers(data);
+    });
+  },
+
+  saveSup: function() {
+    var name = document.getElementById('fsName').value.trim().toUpperCase();
+    if (!name) { document.getElementById('fsName').classList.add('err'); toast('Name is required'); return; }
+    document.getElementById('fsName').classList.remove('err');
+    var data = {
+      rowIndex: S.editSup ? S.editSup.rowIndex : -1,
+      name:    name,
+      address: document.getElementById('fsAddr').value.trim().toUpperCase(),
+      phone:   document.getElementById('fsPhone').value.trim(),
+      email:   document.getElementById('fsEmail').value.trim(),
+      wechat:  document.getElementById('fsWechat').value.trim(),
+      notes:   document.getElementById('fsNotes').value.trim()
+    };
+    loading(true);
+    var fn = S.editSup ? 'updateSupplier' : 'addSupplier';
+    var wasEdit = S.editSup;
+    gsr(fn, data, function() {
+      loading(false);
+      toast(wasEdit ? 'Supplier updated' : 'Supplier added');
+      fetchAllSkus();
+      if (wasEdit) {
+        S.supplier = data;
+        App.openDetail(S.supplier);
+      } else {
+        App.openSuppliers();
+      }
+    });
+  },
+
+  delSupplier: function(rowIndex) {
+    var sup = null;
+    for (var i = 0; i < S.suppliers.length; i++) {
+      if (S.suppliers[i].rowIndex === rowIndex) { sup = S.suppliers[i]; break; }
+    }
+    if (!sup) return;
+    dialog('Delete Supplier', 'Delete "' + sup.name + '" and ALL their orders? This cannot be undone.', function() {
+      loading(true);
+      gsr('deleteSupplier', sup, function() {
+        loading(false);
+        toast('Supplier deleted');
+        App.openSuppliers();
+      });
+    });
+  },
+
+  loadOrders: function(name) {
+    loading(true);
+    gsr('getOrders', name, function(data) {
+      loading(false);
+      S.orders = data;
+      renderOrders(data);
+    });
+  },
+
+  saveOrd: function() {
+    var sku     = document.getElementById('foSku').value.trim().toUpperCase();
+    var item    = document.getElementById('foItem').value.trim().toUpperCase();
+    var price   = parseFloat(document.getElementById('foPrice').value)   || 0;
+    var qty     = parseInt(document.getElementById('foQty').value)       || 0;
+    var cbm     = parseFloat(document.getElementById('foCbm').value)     || 0;
+    var cartons = parseInt(document.getElementById('foCartons').value)   || 0;
+    var date    = document.getElementById('foDate').value.trim();
+
+    if (!sku)     { document.getElementById('foSku').classList.add('err');     toast('SKU required');     return; }
+    if (!price)   { document.getElementById('foPrice').classList.add('err');   toast('Price required');   return; }
+    if (!qty)     { document.getElementById('foQty').classList.add('err');     toast('Qty required');     return; }
+    if (!cbm)     { document.getElementById('foCbm').classList.add('err');     toast('CBM required');     return; }
+    if (!cartons) { document.getElementById('foCartons').classList.add('err'); toast('Cartons required'); return; }
+    if (!date)    { document.getElementById('foDate').classList.add('err');    toast('Date required');    return; }
+
+    var errIds = ['foSku','foPrice','foQty','foCbm','foCartons','foDate'];
+    for (var i = 0; i < errIds.length; i++) document.getElementById(errIds[i]).classList.remove('err');
+
+    var costs = computeCosts(price, qty, cbm, S.rate);
+    var data = {
+      rowIndex:       S.editOrder ? S.editOrder.rowIndex : -1,
+      supplierName:   S.supplier.name,
+      sku:            sku,
+      itemName:       item,
+      price:          price,
+      qtyPerCarton:   qty,
+      cbm:            cbm,
+      orderedCartons: cartons,
+      orderedDate:    date,
+      itemCost:       costs.cost,
+      sellingPrice:   costs.sell
+    };
+    loading(true);
+    var fn = S.editOrder ? 'updateOrder' : 'addOrder';
+    var wasEdit = S.editOrder;
+    gsr(fn, data, function() {
+      loading(false);
+      toast(wasEdit ? 'Order updated' : 'Order added');
+      fetchAllSkus();
+      App.openDetail(S.supplier);
+    });
+  },
+
+  delOrder: function(rowIndex) {
+    var o = null;
+    for (var i = 0; i < S.orders.length; i++) {
+      if (S.orders[i].rowIndex === rowIndex) { o = S.orders[i]; break; }
+    }
+    if (!o) return;
+    dialog('Delete Order', 'Delete order for SKU "' + o.sku + '"?', function() {
+      loading(true);
+      gsr('deleteOrder', o, function() {
+        loading(false);
+        toast('Order deleted');
+        App.loadOrders(S.supplier.name);
+      });
+    });
+  },
+
+  saveBulk: function() {
+    var rows = document.querySelectorAll('#bulkBody tr');
+    var orders = [];
+    var hasError = false;
+
+    for (var r = 0; r < rows.length; r++) {
+      var inputs = rows[r].querySelectorAll('input');
+      var sku     = inputs[0].value.trim().toUpperCase();
+      var item    = inputs[1].value.trim().toUpperCase();
+      var cartons = parseInt(inputs[2].value)   || 0;
+      var qty     = parseInt(inputs[3].value)   || 0;
+      var price   = parseFloat(inputs[4].value) || 0;
+      var cbm     = parseFloat(inputs[5].value) || 0;
+      var date    = inputs[6].value || todayStr();
+
+      if (!sku && !item && !cartons && !qty && !price && !cbm) continue;
+
+      var rowErr = false;
+      if (!sku)     { inputs[0].classList.add('err'); rowErr = true; } else inputs[0].classList.remove('err');
+      if (!item)    { inputs[1].classList.add('err'); rowErr = true; } else inputs[1].classList.remove('err');
+      if (!cartons) { inputs[2].classList.add('err'); rowErr = true; } else inputs[2].classList.remove('err');
+      if (!qty)     { inputs[3].classList.add('err'); rowErr = true; } else inputs[3].classList.remove('err');
+      if (!price)   { inputs[4].classList.add('err'); rowErr = true; } else inputs[4].classList.remove('err');
+      if (!cbm)     { inputs[5].classList.add('err'); rowErr = true; } else inputs[5].classList.remove('err');
+      if (rowErr) { hasError = true; continue; }
+
+      var costs = computeCosts(price, qty, cbm, S.rate);
+      orders.push({
+        supplierName:   S.supplier.name,
+        sku:            sku,
+        itemName:       item,
+        price:          price,
+        qtyPerCarton:   qty,
+        cbm:            cbm,
+        orderedCartons: cartons,
+        orderedDate:    date,
+        itemCost:       costs.cost,
+        sellingPrice:   costs.sell
+      });
+    }
+
+    if (hasError)       { toast('Fix highlighted cells', true); return; }
+    if (!orders.length) { toast('No rows to save'); return; }
+
+    loading(true);
+    gsr('addOrdersBulk', orders, function(count) {
+      loading(false);
+      toast(count + ' order' + (count === 1 ? '' : 's') + ' saved');
+      fetchAllSkus();
+      App.openDetail(S.supplier);
+    });
+  },
+
+  copyWechat: function(id) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(id).then(function() { toast('WeChat ID copied: ' + id); });
+    } else {
+      window.prompt('Copy WeChat ID:', id);
+    }
+  },
+
+  doSearch: function() {
+    var sku = document.getElementById('srchInput').value.trim().toUpperCase();
+    if (!sku) { toast('Enter a SKU'); return; }
+    loading(true);
+    gsr('searchBySku', sku, function(results) {
+      loading(false);
+      renderSearchResults(results, sku);
+    });
+  }
+};
+
+// ── Render functions ──────────────────────────────────────────────
+
+function renderSuppliers(list) {
+  var el = document.getElementById('supList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🏭</div>No suppliers yet. Click + Add Supplier.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i];
+    var sub = [];
+    if (s.phone) sub.push(s.phone);
+    if (s.wechat) sub.push('WeChat: ' + s.wechat);
+    html +=
+      '<div class="sup-item" data-action="openDetail" data-row="' + s.rowIndex + '">' +
+        '<div class="sup-avatar">' + esc(s.name.charAt(0).toUpperCase()) + '</div>' +
+        '<div class="sup-info">' +
+          '<div class="sup-name">' + esc(s.name) + '</div>' +
+          '<div class="sup-sub">' + esc(sub.join(' · ')) + '</div>' +
+        '</div>' +
+        '<div class="sup-actions">' +
+          '<button class="btn btn-outline btn-sm" data-action="editSupplier" data-row="' + s.rowIndex + '">EDIT</button>' +
+          '<button class="btn btn-danger btn-sm" data-action="delSupplier" data-row="' + s.rowIndex + '">DEL</button>' +
+        '</div>' +
+      '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderSupCard(s) {
+  var rows = '';
+  if (s.address) rows += '<div class="det-row"><span class="ic">📍</span><span>' + esc(s.address) + '</span></div>';
+  if (s.phone)   rows += '<div class="det-row"><span class="ic">📞</span><a href="tel:' + esc(s.phone) + '">' + esc(s.phone) + '</a></div>';
+  if (s.email)   rows += '<div class="det-row"><span class="ic">✉</span><a href="mailto:' + esc(s.email) + '">' + esc(s.email) + '</a></div>';
+  if (s.wechat)  rows += '<div class="det-row"><span class="ic">💬</span><span class="wechat-link" data-action="copyWechat" data-wechat="' + esc(s.wechat) + '">WeChat: ' + esc(s.wechat) + '</span></div>';
+  if (s.notes)   rows += '<div class="det-row" style="color:#757575;font-size:13px"><span class="ic">📝</span><span>' + esc(s.notes) + '</span></div>';
+  document.getElementById('supCard').innerHTML =
+    '<div class="det-header">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div class="det-name">' + esc(s.name) + '</div>' +
+        '<button class="btn btn-outline btn-sm" data-action="editSupplier" data-row="' + s.rowIndex + '">EDIT</button>' +
+      '</div>' +
+      (rows ? '<div class="det-divider"></div>' + rows : '') +
+    '</div>';
+}
+
+function renderOrders(list) {
+  var body  = document.getElementById('ordBody');
+  var empty = document.getElementById('ordEmpty');
+  if (!list.length) { body.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var o = list[i];
+    html +=
+      '<tr>' +
+        '<td><strong>' + esc(o.sku) + '</strong></td>' +
+        '<td>' + esc(o.itemName) + '</td>' +
+        '<td>¥' + o.price + '</td>' +
+        '<td>' + o.qtyPerCarton + '</td>' +
+        '<td>' + o.cbm + '</td>' +
+        '<td>' + o.orderedCartons + '</td>' +
+        '<td>' + esc(o.orderedDate) + '</td>' +
+        '<td class="rp">' + fmtRp(o.itemCost) + '</td>' +
+        '<td class="rp">' + fmtRp(o.sellingPrice) + '</td>' +
+        '<td><div class="td-act">' +
+          '<button class="btn btn-outline btn-sm" data-action="editOrder" data-row="' + o.rowIndex + '">EDIT</button>' +
+          '<button class="btn btn-danger btn-sm" data-action="delOrder" data-row="' + o.rowIndex + '">DEL</button>' +
+        '</div></td>' +
+      '</tr>';
+  }
+  body.innerHTML = html;
+}
+
+function renderSearchResults(results, sku) {
+  var el = document.getElementById('srchResults');
+  if (!results.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🔍</div>No results for <strong>' + esc(sku) + '</strong></div>';
+    return;
+  }
+  var html = '<div class="card"><div style="padding:12px 16px 4px"><span class="result-badge">LATEST ORDER</span></div>' + orderCardHtml(results[0]) + '</div>';
+  if (results.length > 1) {
+    html += '<div class="card"><div style="padding:12px 16px 4px"><span class="result-badge result-prev">PREVIOUS ORDERS (' + (results.length - 1) + ')</span></div>';
+    for (var i = 1; i < results.length; i++) html += orderCardHtml(results[i]);
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function orderCardHtml(o) {
+  var contact = [];
+  if (o.supplierPhone)  contact.push('📞 ' + esc(o.supplierPhone));
+  if (o.supplierEmail)  contact.push('✉ '  + esc(o.supplierEmail));
+  if (o.supplierWechat) contact.push('💬 ' + esc(o.supplierWechat));
+  return '<div class="order-card">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div class="order-sku">' + esc(o.sku) + '</div>' +
+      '<div style="font-size:12px;color:#757575">' + esc(o.supplierName) + '</div>' +
+    '</div>' +
+    '<div style="font-weight:600;font-size:14px;margin-top:2px">' + esc(o.itemName) + '</div>' +
+    '<div class="order-meta">' +
+      '<span>¥' + o.price + '</span>' +
+      '<span>' + o.qtyPerCarton + ' pcs/ctn</span>' +
+      '<span>' + o.cbm + ' CBM</span>' +
+      '<span>' + o.orderedCartons + ' cartons</span>' +
+      '<span>' + esc(o.orderedDate) + '</span>' +
+    '</div>' +
+    '<div class="order-cost">Cost: ' + fmtRp(o.itemCost) + ' · Sell: ' + fmtRp(o.sellingPrice) + '</div>' +
+    (contact.length ? '<div class="order-contact">' + contact.join('  ·  ') + '</div>' : '') +
+    '</div>';
+}
+
+// ── Bulk table ────────────────────────────────────────────────────
+
+function buildBulkRows(n) {
+  document.getElementById('bulkBody').innerHTML = '';
+  for (var i = 0; i < n; i++) addBulkRow();
+}
+
+function addBulkRow() {
+  var today = todayStr();
+  var tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td><input type="text"   style="text-transform:uppercase;min-width:90px"  placeholder="GZ-001"></td>' +
+    '<td><input type="text"   style="text-transform:uppercase;min-width:140px" placeholder="Item name"></td>' +
+    '<td><input type="number" style="min-width:70px"  min="1"      placeholder="10"></td>' +
+    '<td><input type="number" style="min-width:70px"  min="1"      placeholder="50"></td>' +
+    '<td><input type="number" style="min-width:70px"  step="0.01"  min="0" placeholder="45.00"></td>' +
+    '<td><input type="number" style="min-width:70px"  step="0.001" min="0" placeholder="0.050"></td>' +
+    '<td><input type="date"   style="min-width:130px" value="' + today + '"></td>' +
+    '<td><button class="bulk-row-del" data-action="delBulkRow" title="Remove">&#10005;</button></td>';
+  document.getElementById('bulkBody').appendChild(tr);
+}
+
+function updateBulkRate() {
+  var el = document.getElementById('bulkRate');
+  el.textContent = S.rate > 0
+    ? 'Exchange rate: 1 CNY = Rp ' + S.rate.toLocaleString('id-ID', {maximumFractionDigits:0}) + ' — costs auto-computed on save'
+    : 'Exchange rate unavailable — costs will be 0';
+}
+
+// ── Exchange rate & costs ─────────────────────────────────────────
+
+function fetchRate() {
+  gsr('getExchangeRate', null, function(rate) {
+    S.rate = rate;
+    updateCostPreview();
+    updateBulkRate();
+  }, function() {});
+}
+
+function fetchAllSkus() {
+  gsr('getAllSkus', null, function(skus) { S.allSkus = skus; }, function() {});
+}
+
+function updateCostPreview() {
+  var price = parseFloat(document.getElementById('foPrice').value) || 0;
+  var qty   = parseInt(document.getElementById('foQty').value)     || 0;
+  var cbm   = parseFloat(document.getElementById('foCbm').value)   || 0;
+  var box   = document.getElementById('costBox');
+  if (!price || !qty || !cbm || !S.rate) { box.classList.add('hidden'); return; }
+  var costs = computeCosts(price, qty, cbm, S.rate);
+  document.getElementById('cpCost').textContent = fmtRp(costs.cost);
+  document.getElementById('cpSell').textContent = fmtRp(costs.sell);
+  box.classList.remove('hidden');
+}
+
+function computeCosts(price, qty, cbm, rate) {
+  if (!rate || !qty) return { cost: 0, sell: 0 };
+  var cost = Math.round((((price * rate * qty) + (cbm * 2790000)) / qty) / 100) * 100;
+  var sell = (cost * 1.8 < 20000)
+    ? Math.round((cost * 1.8 + 2000) / 100) * 100
+    : Math.round((cost * 1.8) / 100) * 100;
+  return { cost: cost, sell: sell };
+}
+
+// ── UI helpers ────────────────────────────────────────────────────
+
+function loading(on) {
+  var el = document.getElementById('overlay');
+  if (on) { el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
+}
+
+function toast(msg, isErr) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show' + (isErr ? ' err' : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(function() { el.className = ''; }, 3200);
+}
+
+function dialog(title, msg, cb) {
+  document.getElementById('dlgTitle').textContent = title;
+  document.getElementById('dlgMsg').textContent   = msg;
+  document.getElementById('dlg-overlay').classList.remove('hidden');
+  _dlgCb = cb;
+}
+
+function hideDialog() { document.getElementById('dlg-overlay').classList.add('hidden'); }
+
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function fmtRp(v) { return 'Rp ' + (Number(v) || 0).toLocaleString('id-ID'); }
+
+function todayStr() {
+  var d = new Date();
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+
+// ── Backend RPC wrapper (Netlify function) ─────────────────────────
+
+function gsr(fn, arg, onSuccess, onError) {
+  var spreadsheetId = localStorage.getItem('ssid') || '';
+  fetch('/.netlify/functions/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fn: fn, arg: arg, spreadsheetId: spreadsheetId })
+  })
+    .then(function(res) { return res.json(); })
+    .then(function(json) {
+      if (json.ok) {
+        (onSuccess || function() {})(json.data);
+      } else {
+        (onError || function(err) {
+          loading(false);
+          toast((err && err.message) ? err.message : 'Server error', true);
+        })({ message: json.error });
+      }
+    })
+    .catch(function(err) {
+      (onError || function(e) {
+        loading(false);
+        toast('Network error', true);
+      })({ message: err.message });
+    });
+}
+
+// ── Setup screen ──────────────────────────────────────────────────
+
+function showSetup(isChange) {
+  document.getElementById('vSetup').classList.remove('hidden');
+  document.getElementById('appHeader').classList.add('hidden');
+  for (var i = 0; i < VIEWS.length; i++) {
+    document.getElementById(VIEWS[i]).classList.add('hidden');
+  }
+  document.getElementById('setupInput').value = '';
+  document.getElementById('setupErr').style.display = 'none';
+  document.getElementById('setupInput').placeholder = isChange
+    ? 'Paste new spreadsheet URL or ID…'
+    : 'https://docs.google.com/spreadsheets/d/…';
+  setTimeout(function() { document.getElementById('setupInput').focus(); }, 80);
+}
+
+function showApp() {
+  document.getElementById('vSetup').classList.add('hidden');
+  document.getElementById('appHeader').classList.remove('hidden');
+}
+
+function saveSetup() {
+  var input = document.getElementById('setupInput').value.trim();
+  var errEl = document.getElementById('setupErr');
+  if (!input) {
+    document.getElementById('setupInput').classList.add('err');
+    errEl.textContent = 'Please enter a URL or ID.';
+    errEl.style.display = 'block';
+    return;
+  }
+  document.getElementById('setupInput').classList.remove('err');
+  errEl.style.display = 'none';
+  loading(true);
+  gsr('setSpreadsheetId', input, function(result) {
+    loading(false);
+    if (result && result.ok) {
+      localStorage.setItem('ssid', result.id);
+      toast('Connected to: ' + result.title);
+      showApp();
+      App.openSuppliers();
+      fetchRate();
+      fetchAllSkus();
+    } else {
+      errEl.textContent = (result && result.error) ? result.error : 'Connection failed';
+      errEl.style.display = 'block';
+      document.getElementById('setupInput').classList.add('err');
+    }
+  }, function(err) {
+    loading(false);
+    errEl.textContent = (err && err.message) ? err.message : 'Connection failed';
+    errEl.style.display = 'block';
+  });
+}
+
+// Boot
+App.init();
+</script>
+</body>
+</html>
