@@ -11,6 +11,7 @@ const HANDLERS = {
   updateOrder:       (spreadsheetId, arg)  => sheetsLib.updateOrder(spreadsheetId, arg),
   deleteOrder:       (spreadsheetId, arg)  => sheetsLib.deleteOrder(spreadsheetId, arg),
   addOrdersBulk:     (spreadsheetId, arg)  => sheetsLib.addOrdersBulk(spreadsheetId, arg),
+  deleteOrdersBulk:  (spreadsheetId, arg)  => sheetsLib.deleteOrdersBulk(spreadsheetId, arg),
   uploadPhoto:       (spreadsheetId, arg)  => sheetsLib.uploadPhoto(spreadsheetId, arg),
   searchBySku:       (spreadsheetId, arg)  => sheetsLib.searchBySku(spreadsheetId, arg),
   getAllSkus:         (spreadsheetId)       => sheetsLib.getAllSkus(spreadsheetId),

@@ -111,6 +111,16 @@ tr:hover td{background:#FAFAFA}
 .empty{text-align:center;padding:40px 16px;color:#9E9E9E;font-size:14px}
 .empty .ei{font-size:38px;margin-bottom:8px}
 .rp{font-weight:600;color:#2E7D32}
+.chk-col{width:36px;padding:9px 8px!important;text-align:center}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#00695C}
+.bulk-bar{position:fixed;bottom:0;left:0;right:0;background:#004D40;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:500;box-shadow:0 -2px 8px rgba(0,0,0,.25)}
+.bulk-bar span{flex:1;font-size:13px;font-weight:600}
+.bulk-bar .btn{font-size:12px;padding:6px 14px}
+.btn-white{background:#fff;color:#004D40;border:none}
+.btn-white-danger{background:#fff;color:#c62828;border:none}
+.bulk-photo-btn{cursor:pointer;font-size:18px;line-height:1;padding:2px 4px;display:inline-block}
+.bulk-photo-btn:hover{opacity:.7}
+.bulk-photo-preview{width:36px;height:36px;object-fit:cover;border-radius:3px;display:none;vertical-align:middle;margin-left:4px}
 </style>
 </head>
 <body>
@@ -173,6 +183,7 @@ tr:hover td{background:#FAFAFA}
       <table>
         <thead>
           <tr>
+            <th class="chk-col"><input type="checkbox" id="chkAll" title="Select all"></th>
             <th>Photo</th><th>SKU</th><th>Item Name</th><th>Price ¥</th><th>Qty/Ctn</th>
             <th>CBM</th><th>Cartons</th><th>Date</th><th>Item Cost</th><th>Selling Price</th><th></th>
           </tr>
@@ -245,6 +256,7 @@ tr:hover td{background:#FAFAFA}
       <table class="bulk-table">
         <thead>
           <tr>
+            <th>Photo</th>
             <th>SKU <span class="req">*</span></th>
             <th>Item Name <span class="req">*</span></th>
             <th>Cartons Ord. <span class="req">*</span></th>
@@ -279,12 +291,39 @@ tr:hover td{background:#FAFAFA}
   <div id="srchResults"></div>
 </div>
 
+<div class="content hidden" id="vBulkEdit">
+  <div class="card card-body">
+    <p style="font-size:13px;color:#757575;margin-bottom:16px">Leave a field blank to keep existing values for that field.</p>
+    <div class="form-row">
+      <div class="fg"><label>Ordered Date</label><input id="beDate" type="date"></div>
+      <div class="fg"><label>Price ¥</label><input id="bePrice" type="number" step="0.01" min="0" placeholder="unchanged"></div>
+    </div>
+    <div class="form-row3">
+      <div class="fg"><label>Qty/Carton</label><input id="beQty" type="number" min="1" placeholder="unchanged"></div>
+      <div class="fg"><label>CBM</label><input id="beCbm" type="number" step="0.001" min="0" placeholder="unchanged"></div>
+      <div class="fg"><label>Cartons</label><input id="beCartons" type="number" min="1" placeholder="unchanged"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline btn-sm" id="btnCancelBulkEdit">CANCEL</button>
+      <button class="btn btn-primary btn-sm" id="btnSaveBulkEdit">SAVE ALL</button>
+    </div>
+  </div>
+</div>
+
+<div id="bulkBar" class="bulk-bar hidden">
+  <span id="bulkCount">0 selected</span>
+  <button class="btn btn-white btn-sm" id="btnBulkEditOpen">EDIT</button>
+  <button class="btn btn-white-danger btn-sm" id="btnBulkDeleteAll">DELETE</button>
+  <button class="btn btn-white btn-sm" id="btnBulkCancel">CANCEL</button>
+</div>
+
 <script>
 var S = {
   suppliers: [], orders: [], supplier: null,
-  editOrder: null, editSup: null, rate: 0, allSkus: [], currentView: null
+  editOrder: null, editSup: null, rate: 0, allSkus: [], currentView: null,
+  selectedRows: [], _localPhoto: null
 };
-var VIEWS = ['vSuppliers','vDetail','vFormSup','vFormOrd','vBulk','vSearch'];
+var VIEWS = ['vSuppliers','vDetail','vFormSup','vFormOrd','vBulk','vSearch','vBulkEdit'];
 var _dlgCb = null;
 var _tt = null;
 
@@ -356,6 +395,28 @@ var App = {
     document.getElementById('btnSaveBulk').addEventListener('click', function() { App.saveBulk(); });
     document.getElementById('btnDoSearch').addEventListener('click', function() { App.doSearch(); });
     document.getElementById('btnSaveSetup').addEventListener('click', function() { saveSetup(); });
+    document.getElementById('btnBulkEditOpen').addEventListener('click', function() { App.bulkEditOpen(); });
+    document.getElementById('btnBulkDeleteAll').addEventListener('click', function() { App.bulkDeleteAll(); });
+    document.getElementById('btnBulkCancel').addEventListener('click', function() { clearSelection(); });
+    document.getElementById('btnCancelBulkEdit').addEventListener('click', function() { App.openDetail(S.supplier); });
+    document.getElementById('btnSaveBulkEdit').addEventListener('click', function() { App.saveBulkEdit(); });
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.id === 'chkAll') {
+        var checked = e.target.checked;
+        document.querySelectorAll('.row-chk').forEach(function(c) { c.checked = checked; });
+        updateBulkBar();
+      } else if (e.target && e.target.classList.contains('row-chk')) {
+        updateBulkBar();
+      } else if (e.target && e.target.classList.contains('bulk-photo-input')) {
+        var file = e.target.files[0];
+        if (file) {
+          var preview = e.target.closest('td').querySelector('.bulk-photo-preview');
+          var reader2 = new FileReader();
+          reader2.onload = function(ev) { preview.src = ev.target.result; preview.style.display = 'inline-block'; };
+          reader2.readAsDataURL(file);
+        }
+      }
+    });
     document.getElementById('srchInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') App.doSearch(); });
     document.getElementById('setupInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') saveSetup(); });
     document.getElementById('foPrice').addEventListener('input', updateCostPreview);
@@ -389,7 +450,7 @@ var App = {
     var v = S.currentView;
     if (v === 'vDetail')  { App.openSuppliers(); return; }
     if (v === 'vFormSup') { S.editSup ? App.openDetail(S.supplier) : App.openSuppliers(); return; }
-    if (v === 'vFormOrd' || v === 'vBulk') { App.openDetail(S.supplier); return; }
+    if (v === 'vFormOrd' || v === 'vBulk' || v === 'vBulkEdit') { App.openDetail(S.supplier); return; }
     App.openSuppliers();
   },
 
@@ -400,6 +461,7 @@ var App = {
 
   openDetail: function(sup) {
     S.supplier = sup;
+    clearSelection();
     setView('vDetail', sup.name, true);
     renderSupCard(sup);
     App.loadOrders(sup.name);
@@ -537,6 +599,13 @@ var App = {
     loading(true);
     gsr('getOrders', name, function(data) {
       loading(false);
+      if (S._localPhoto) {
+        var lp = S._localPhoto;
+        for (var i = 0; i < data.length; i++) {
+          if (data[i].rowIndex === lp.rowIndex) { data[i].photo = lp.dataUrl; break; }
+        }
+        S._localPhoto = null;
+      }
       S.orders = data;
       renderOrders(data);
     });
@@ -583,10 +652,11 @@ var App = {
       var rowIndex = wasEdit ? knownRowIndex : (result && result.rowIndex ? result.rowIndex : -1);
       var photoFile = document.getElementById('foPhoto').files[0];
       if (photoFile && rowIndex > 0) {
-        uploadPhotoFile(photoFile, S.supplier.name, rowIndex, function() {
+        uploadPhotoFile(photoFile, S.supplier.name, rowIndex, function(localDataUrl) {
           loading(false);
           toast(wasEdit ? 'Order updated' : 'Order added');
           fetchAllSkus();
+          if (localDataUrl && rowIndex > 0) S._localPhoto = { rowIndex: rowIndex, dataUrl: localDataUrl };
           App.openDetail(S.supplier);
         });
       } else {
@@ -617,27 +687,29 @@ var App = {
   saveBulk: function() {
     var rows = document.querySelectorAll('#bulkBody tr');
     var orders = [];
+    var photoFiles = [];
     var hasError = false;
 
     for (var r = 0; r < rows.length; r++) {
+      // inputs: [0]=photo file, [1]=sku, [2]=item, [3]=cartons, [4]=qty, [5]=price, [6]=cbm, [7]=date
       var inputs = rows[r].querySelectorAll('input');
-      var sku     = inputs[0].value.trim().toUpperCase();
-      var item    = inputs[1].value.trim().toUpperCase();
-      var cartons = parseInt(inputs[2].value)   || 0;
-      var qty     = parseInt(inputs[3].value)   || 0;
-      var price   = parseFloat(inputs[4].value) || 0;
-      var cbm     = parseFloat(inputs[5].value) || 0;
-      var date    = inputs[6].value || todayStr();
+      var sku     = inputs[1].value.trim().toUpperCase();
+      var item    = inputs[2].value.trim().toUpperCase();
+      var cartons = parseInt(inputs[3].value)   || 0;
+      var qty     = parseInt(inputs[4].value)   || 0;
+      var price   = parseFloat(inputs[5].value) || 0;
+      var cbm     = parseFloat(inputs[6].value) || 0;
+      var date    = inputs[7].value || todayStr();
 
       if (!sku && !item && !cartons && !qty && !price && !cbm) continue;
 
       var rowErr = false;
-      if (!sku)     { inputs[0].classList.add('err'); rowErr = true; } else inputs[0].classList.remove('err');
-      if (!item)    { inputs[1].classList.add('err'); rowErr = true; } else inputs[1].classList.remove('err');
-      if (!cartons) { inputs[2].classList.add('err'); rowErr = true; } else inputs[2].classList.remove('err');
-      if (!qty)     { inputs[3].classList.add('err'); rowErr = true; } else inputs[3].classList.remove('err');
-      if (!price)   { inputs[4].classList.add('err'); rowErr = true; } else inputs[4].classList.remove('err');
-      if (!cbm)     { inputs[5].classList.add('err'); rowErr = true; } else inputs[5].classList.remove('err');
+      if (!sku)     { inputs[1].classList.add('err'); rowErr = true; } else inputs[1].classList.remove('err');
+      if (!item)    { inputs[2].classList.add('err'); rowErr = true; } else inputs[2].classList.remove('err');
+      if (!cartons) { inputs[3].classList.add('err'); rowErr = true; } else inputs[3].classList.remove('err');
+      if (!qty)     { inputs[4].classList.add('err'); rowErr = true; } else inputs[4].classList.remove('err');
+      if (!price)   { inputs[5].classList.add('err'); rowErr = true; } else inputs[5].classList.remove('err');
+      if (!cbm)     { inputs[6].classList.add('err'); rowErr = true; } else inputs[6].classList.remove('err');
       if (rowErr) { hasError = true; continue; }
 
       var costs = computeCosts(price, qty, cbm, S.rate);
@@ -653,17 +725,46 @@ var App = {
         itemCost:       costs.cost,
         sellingPrice:   costs.sell
       });
+      photoFiles.push(inputs[0].files[0] || null);
     }
 
     if (hasError)       { toast('Fix highlighted cells', true); return; }
     if (!orders.length) { toast('No rows to save'); return; }
 
     loading(true);
-    gsr('addOrdersBulk', orders, function(count) {
-      loading(false);
-      toast(count + ' order' + (count === 1 ? '' : 's') + ' saved');
-      fetchAllSkus();
-      App.openDetail(S.supplier);
+    gsr('addOrdersBulk', orders, function(result) {
+      var count    = result && result.count    != null ? result.count    : orders.length;
+      var startRow = result && result.startRow != null ? result.startRow : -1;
+
+      var photoPairs = [];
+      if (startRow > 0) {
+        for (var pi = 0; pi < photoFiles.length; pi++) {
+          if (photoFiles[pi]) photoPairs.push({ file: photoFiles[pi], rowIndex: startRow + pi });
+        }
+      }
+
+      if (photoPairs.length === 0) {
+        loading(false);
+        toast(count + ' order' + (count === 1 ? '' : 's') + ' saved');
+        fetchAllSkus();
+        App.openDetail(S.supplier);
+        return;
+      }
+
+      toast(count + ' order' + (count === 1 ? '' : 's') + ' saved — uploading photos…');
+      var pi2 = 0;
+      function uploadNextBulk() {
+        if (pi2 >= photoPairs.length) {
+          loading(false);
+          toast('Photos uploaded');
+          fetchAllSkus();
+          App.openDetail(S.supplier);
+          return;
+        }
+        var pair = photoPairs[pi2++];
+        uploadPhotoFile(pair.file, S.supplier.name, pair.rowIndex, uploadNextBulk);
+      }
+      uploadNextBulk();
     });
   },
 
@@ -673,6 +774,80 @@ var App = {
     } else {
       window.prompt('Copy WeChat ID:', id);
     }
+  },
+
+  bulkEditOpen: function() {
+    if (!S.selectedRows.length) { toast('Select at least one row'); return; }
+    document.getElementById('beDate').value    = '';
+    document.getElementById('bePrice').value   = '';
+    document.getElementById('beQty').value     = '';
+    document.getElementById('beCbm').value     = '';
+    document.getElementById('beCartons').value = '';
+    setView('vBulkEdit', 'Edit ' + S.selectedRows.length + ' Order' + (S.selectedRows.length === 1 ? '' : 's'), true);
+  },
+
+  bulkDeleteAll: function() {
+    var n = S.selectedRows.length;
+    if (!n) return;
+    dialog('Delete ' + n + ' Order' + (n === 1 ? '' : 's'),
+      'Delete ' + n + ' selected order' + (n === 1 ? '' : 's') + '? This cannot be undone.',
+      function() {
+        var toDelete = S.orders.filter(function(o) { return S.selectedRows.indexOf(o.rowIndex) !== -1; });
+        loading(true);
+        gsr('deleteOrdersBulk', { supplierName: S.supplier.name, rows: toDelete }, function() {
+          loading(false);
+          toast(n + ' order' + (n === 1 ? '' : 's') + ' deleted');
+          clearSelection();
+          App.loadOrders(S.supplier.name);
+        });
+      }
+    );
+  },
+
+  saveBulkEdit: function() {
+    var dateVal    = document.getElementById('beDate').value;
+    var priceVal   = document.getElementById('bePrice').value.trim();
+    var qtyVal     = document.getElementById('beQty').value.trim();
+    var cbmVal     = document.getElementById('beCbm').value.trim();
+    var cartonsVal = document.getElementById('beCartons').value.trim();
+
+    if (!dateVal && !priceVal && !qtyVal && !cbmVal && !cartonsVal) {
+      toast('Enter at least one field to update'); return;
+    }
+
+    var toUpdate = S.orders.filter(function(o) { return S.selectedRows.indexOf(o.rowIndex) !== -1; });
+    var updates = toUpdate.map(function(o) {
+      var price   = priceVal   ? parseFloat(priceVal)   : o.price;
+      var qty     = qtyVal     ? parseInt(qtyVal)        : o.qtyPerCarton;
+      var cbm     = cbmVal     ? parseFloat(cbmVal)      : o.cbm;
+      var cartons = cartonsVal ? parseInt(cartonsVal)    : o.orderedCartons;
+      var date    = dateVal    ? dateVal                 : o.orderedDate;
+      var costs   = computeCosts(price, qty, cbm, S.rate);
+      return {
+        rowIndex: o.rowIndex, supplierName: S.supplier.name,
+        sku: o.sku, itemName: o.itemName,
+        price: price, qtyPerCarton: qty, cbm: cbm,
+        orderedCartons: cartons, orderedDate: date,
+        itemCost: costs.cost, sellingPrice: costs.sell
+      };
+    });
+
+    loading(true);
+    var idx = 0;
+    function next() {
+      if (idx >= updates.length) {
+        loading(false);
+        toast(updates.length + ' order' + (updates.length === 1 ? '' : 's') + ' updated');
+        clearSelection();
+        App.openDetail(S.supplier);
+        return;
+      }
+      gsr('updateOrder', updates[idx++], next, function(err) {
+        loading(false);
+        toast('Update failed: ' + (err && err.message ? err.message : ''), true);
+      });
+    }
+    next();
   },
 
   doSearch: function() {
@@ -743,6 +918,7 @@ function renderOrders(list) {
     var o = list[i];
     html +=
       '<tr>' +
+        '<td class="chk-col"><input type="checkbox" class="row-chk" data-row="' + o.rowIndex + '"></td>' +
         '<td>' + (o.photo ? '<img src="' + esc(o.photo) + '" style="width:64px;height:64px;object-fit:cover;border-radius:4px;display:block">' : '<span style="color:#BDBDBD;font-size:11px">—</span>') + '</td>' +
         '<td><strong>' + esc(o.sku) + '</strong></td>' +
         '<td>' + esc(o.itemName) + '</td>' +
@@ -815,6 +991,10 @@ function addBulkRow() {
   var today = todayStr();
   var tr = document.createElement('tr');
   tr.innerHTML =
+    '<td style="text-align:center;padding:3px 6px">' +
+      '<label class="bulk-photo-btn" title="Add photo">📷<input type="file" accept="image/*" class="bulk-photo-input" style="display:none"></label>' +
+      '<img class="bulk-photo-preview">' +
+    '</td>' +
     '<td><input type="text"   style="text-transform:uppercase;min-width:90px"  placeholder="GZ-001"></td>' +
     '<td><input type="text"   style="text-transform:uppercase;min-width:140px" placeholder="Item name"></td>' +
     '<td><input type="number" style="min-width:70px"  min="1"      placeholder="10"></td>' +
@@ -907,6 +1087,32 @@ function todayStr() {
   return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
 }
 
+// ── Bulk selection helpers ────────────────────────────────────────
+
+function updateBulkBar() {
+  var checked = document.querySelectorAll('.row-chk:checked');
+  S.selectedRows = [];
+  for (var i = 0; i < checked.length; i++) S.selectedRows.push(parseInt(checked[i].dataset.row));
+  var n = S.selectedRows.length;
+  document.getElementById('bulkCount').textContent = n + ' selected';
+  if (n > 0) { document.getElementById('bulkBar').classList.remove('hidden'); }
+  else        { document.getElementById('bulkBar').classList.add('hidden'); }
+  var all = document.querySelectorAll('.row-chk');
+  var chkAll = document.getElementById('chkAll');
+  if (chkAll) {
+    chkAll.indeterminate = n > 0 && n < all.length;
+    chkAll.checked = all.length > 0 && n === all.length;
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.row-chk').forEach(function(c) { c.checked = false; });
+  var chkAll = document.getElementById('chkAll');
+  if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+  S.selectedRows = [];
+  document.getElementById('bulkBar').classList.add('hidden');
+}
+
 // ── Photo upload ──────────────────────────────────────────────────
 
 function uploadPhotoFile(file, supplierName, rowIndex, onDone) {
@@ -920,14 +1126,18 @@ function uploadPhotoFile(file, supplierName, rowIndex, onDone) {
       canvas.width  = Math.round(img.width  * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      var base64 = canvas.toDataURL('image/jpeg', 0.78).split(',')[1];
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+      var base64  = dataUrl.split(',')[1];
       gsr('uploadPhoto', {
         supplierName: supplierName,
         rowIndex: rowIndex,
         imageBase64: base64,
         mimeType: 'image/jpeg',
         siteUrl: window.location.origin
-      }, function() { onDone(); }, function(err) { toast('Photo upload failed: ' + (err && err.message ? err.message : ''), true); onDone(); });
+      }, function() { onDone(dataUrl); }, function(err) {
+        toast('Photo upload failed: ' + (err && err.message ? err.message : ''), true);
+        onDone(null);
+      });
     };
     img.src = e.target.result;
   };

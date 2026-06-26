@@ -14,20 +14,26 @@ exports.handler = async (event) => {
 
     const res = await drive.files.get(
       { fileId: id, alt: 'media' },
-      { responseType: 'arraybuffer' }
+      { responseType: 'stream' }
     );
 
-    const body = Buffer.from(res.data).toString('base64');
+    const buffer = await new Promise((resolve, reject) => {
+      const chunks = [];
+      res.data.on('data', chunk => chunks.push(chunk));
+      res.data.on('end', () => resolve(Buffer.concat(chunks)));
+      res.data.on('error', reject);
+    });
+
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'image/jpeg',
         'Cache-Control': 'public, max-age=604800'
       },
-      body,
+      body: buffer.toString('base64'),
       isBase64Encoded: true
     };
   } catch (e) {
-    return { statusCode: 404, body: 'Photo not found' };
+    return { statusCode: 404, body: 'Photo not found: ' + e.message };
   }
 };
